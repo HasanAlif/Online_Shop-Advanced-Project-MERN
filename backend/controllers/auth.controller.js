@@ -88,5 +88,25 @@ export const Login = async (req, res) => {
 };
 
 export const Logout = async (req, res) => {
-  res.send("logout Auth route is working");
+  try {
+    // Get the refresh token from the request
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      // Get the user ID from the refresh token
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+
+      // Delete the refresh token from Redis
+      await redis.del(`refresh_token:${decoded.userId}`);
+    }
+    // Clear the cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error for logging out", error });
+  }
 };
