@@ -84,7 +84,49 @@ export const Signup = async (req, res) => {
 };
 
 export const Login = async (req, res) => {
-  res.send("login Auth route is working");
+  try {
+    // Get the email and password from the request body
+    const { email, password } = req.body;
+
+    // Validate request body
+    const user = await User.findOne({ email });
+
+    //Check if the user exists
+    // If the user does not exist, return an error
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    //Check if the password is correct
+    // If the user exists and the password is correct, generate tokens
+    if(user && (await user.comparePassword(password))) {
+      //Generate tokens
+      const { accessToken, refreshToken } = generateTokens(user._id);
+
+      //Store the refresh token in Redis
+      await storeRefreshToken(user._id, refreshToken);
+
+      //Set cookies
+      setCookies(res, accessToken, refreshToken);
+
+      //Send the user data and message in the response
+      res.status(200).json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        message: "Login successful",
+      });
+    }
+  } catch (error) {
+    // Handle errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Server Error", error });
+  }
 };
 
 export const Logout = async (req, res) => {
