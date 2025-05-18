@@ -99,7 +99,7 @@ export const Login = async (req, res) => {
 
     //Check if the password is correct
     // If the user exists and the password is correct, generate tokens
-    if(user && (await user.comparePassword(password))) {
+    if (user && (await user.comparePassword(password))) {
       //Generate tokens
       const { accessToken, refreshToken } = generateTokens(user._id);
 
@@ -150,5 +150,48 @@ export const Logout = async (req, res) => {
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error for logging out", error });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    // Get the refresh token from the request
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    // Check if the refresh token is in Redis
+    const storedToken = await redis.get(
+      `refresh_token:${decoded.userId}`
+    );
+
+    if (!storedToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    // Generate new tokens
+    const accessToken = jwt.sign(
+      { userId: decoded.userId },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    // Generate a new refresh token
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+  
+
+    res.status(200).json({ message: "Tokens refreshed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error for refreshing tokens", error });
   }
 };
