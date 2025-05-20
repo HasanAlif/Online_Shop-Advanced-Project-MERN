@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
 
+// Define the product schema
+// The schema defines the structure of the product documents in the MongoDB collection
 const productSchema = new mongoose.Schema(
   {
     name: {

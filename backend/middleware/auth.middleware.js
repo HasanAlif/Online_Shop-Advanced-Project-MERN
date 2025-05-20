@@ -5,12 +5,15 @@ export const protectRoute = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken; // Get the access token from cookies
 
+    // Check if the access token is provided
     if (!accessToken) {
       return res.status(401).json({ message: "No access token provided" });
     }
     try {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET); // Verify the access token
       const user = await User.findById(decoded.userId).select("-password"); // Find the user by ID excluding the password
+
+      // Check if the user exists
       if (!user) {
         return res
           .status(401)

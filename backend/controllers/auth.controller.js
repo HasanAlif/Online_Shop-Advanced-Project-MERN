@@ -4,9 +4,11 @@ import { redis } from "../lib/redis.js";
 
 // Function to generate JWT tokens
 const generateTokens = (userId) => {
+  // Generate access token and refresh token
   const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
+  // Generate refresh token with a longer expiration time
   const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
@@ -158,6 +160,7 @@ export const refreshToken = async (req, res) => {
     // Get the refresh token from the request
     const refreshToken = req.cookies.refreshToken;
 
+    // Check if the refresh token is provided
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
     }
@@ -170,6 +173,7 @@ export const refreshToken = async (req, res) => {
       `refresh_token:${decoded.userId}`
     );
 
+    // If the refresh token is not found in Redis, return an error
     if (!storedToken) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
