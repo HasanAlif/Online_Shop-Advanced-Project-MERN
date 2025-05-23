@@ -17,7 +17,8 @@ export const getAllProducts = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
 	try {
-		let featuredProducts = await redis.get("featured_products");
+		let featuredProducts = await redis.get("featured_products");// Fetch featured products from Redis cache
+		// if featured products are in redis, return them
 		if (featuredProducts) {
 			return res.json(JSON.parse(featuredProducts));
 		}
@@ -33,7 +34,7 @@ export const getFeaturedProducts = async (req, res) => {
 
 		// store in redis for future quick access
 
-		await redis.set("featured_products", JSON.stringify(featuredProducts));
+		await redis.set("featured_products", JSON.stringify(featuredProducts));// Set the featured products in Redis cache for future quick access
 
 		res.json(featuredProducts);
 	} catch (error) {
@@ -44,26 +45,33 @@ export const getFeaturedProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, category } = req.body;
+		const { name, description, price, image, category } = req.body;// Destructure the request body to get product details
+		// Check if all required fields are present
 
-		let cloudinaryResponse = null;
+		let cloudinaryResponse = null;// Initialize cloudinaryResponse to null
+
+		// Check if image is present in the request
 		if (image) {
+			// Upload the image to Cloudinary
 			cloudinaryResponse = await cloudinary.uploader.upload(image, {
-				folder: "products",
-			});
+				folder: "products",// Specify the folder in Cloudinary where the image will be stored
+			});// Upload the image to Cloudinary
 		}
+
+		// Create a new product in the database
+		// The image URL is set to the secure_url returned by Cloudinary, or an empty string if no image was uploaded	
 		const product = await Product.create({
 			name,
 			description,
 			price,
 			image: cloudinaryResponse ?.secure_url ? cloudinaryResponse.secure_url : "",
 			category,
-		});
+		});// Create a new product in the database
 
 		res.status(201).json({
 			message: "Product created successfully",
 			product,
-		});
+		});// Send a success response with the created product
 	} catch (error) {
 		console.log("Error in createProduct controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
