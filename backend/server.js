@@ -16,7 +16,7 @@ dotenv.config();// Initialize dotenv to load environment variables
 const app = express();
 
 
-app.use(express.json());// Middleware to parse JSON request bodies
+app.use(express.json({limit: "10mb"}));// Middleware to parse JSON request bodies
 app.use(cookieParser());// Middleware to parse cookies
 
 
