@@ -2,12 +2,14 @@ import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-export const useUserStore = create((set, get) => ({
+// Zustand store for user management
+// This store handles user authentication, including signup, login, logout, and checking authentication status.
+export const useUserStore = create((set) => ({
   user: null,
   loading: false,
   checkingAuth: true,
 
-  signup: async ({ name, email, password, confirmPassword }) => {
+  signup: async ({ name, email, password, confirmPassword }) => {// Function to handle user signup
     set({ loading: true });
 
     if (password !== confirmPassword) {
@@ -16,18 +18,18 @@ export const useUserStore = create((set, get) => ({
     }
 
     try {
-      const res = await axios.post("/auth/signup", { name, email, password });
-      set({ user: res.data, loading: false });
+      const res = await axios.post("/auth/signup", { name, email, password });// Make a POST request to signup endpoint
+      set({ user: res.data, loading: false });// Update the user state with the response data
     } catch (error) {
       set({ loading: false });
       toast.error(error.response.data.message || "An error occurred");
     }
   },
-  login: async (email, password) => {
+  login: async (email, password) => {// Function to handle user login
 		set({ loading: true });
 
 		try {
-			const res = await axios.post("/auth/login", { email, password });
+			const res = await axios.post("/auth/login", { email, password });// Make a POST request to login endpoint
 
 			set({ user: res.data, loading: false });
 		} catch (error) {
@@ -35,19 +37,19 @@ export const useUserStore = create((set, get) => ({
 			toast.error(error.response.data.message || "An error occurred");
 		}
 	},
-    logout: async () => {
+    logout: async () => {// Function to handle user logout
 		try {
-			await axios.post("/auth/logout");
+			await axios.post("/auth/logout");// Make a POST request to logout endpoint
 			set({ user: null });
 		} catch (error) {
 			toast.error(error.response?.data?.message || "An error occurred during logout");
 		}
 	},
-    checkAuth: async () => {
+    checkAuth: async () => {// Function to check if the user is authenticated
 		set({ checkingAuth: true });
 		try {
-			const response = await axios.get("/auth/profile");
-			set({ user: response.data, checkingAuth: false });
+			const response = await axios.get("/auth/profile");// Make a GET request to profile endpoint
+			set({ user: response.data, checkingAuth: false });// Update the user state with the response data
 		} catch (error) {
 			console.log(error.message);
 			set({ checkingAuth: false, user: null });
