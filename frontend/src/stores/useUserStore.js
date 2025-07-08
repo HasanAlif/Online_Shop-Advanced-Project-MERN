@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 
 // Zustand store for user management
 // This store handles user authentication, including signup, login, logout, and checking authentication status.
-export const useUserStore = create((set) => ({
+export const useUserStore = create((set,get) => ({
   user: null,
   loading: false,
   checkingAuth: true,
@@ -53,6 +53,20 @@ export const useUserStore = create((set) => ({
 		} catch (error) {
 			console.log(error.message);
 			set({ checkingAuth: false, user: null });
+		}
+	},
+	refreshToken: async () => {
+		// Prevent multiple simultaneous refresh attempts
+		if (get().checkingAuth) return;
+
+		set({ checkingAuth: true });
+		try {
+			const response = await axios.post("/auth/refresh-token");
+			set({ checkingAuth: false });
+			return response.data;
+		} catch (error) {
+			set({ user: null, checkingAuth: false });
+			throw error;
 		}
 	},
 }));
