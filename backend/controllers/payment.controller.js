@@ -82,7 +82,13 @@ export const createCheckoutSession = async (req, res) => {
       await createNewCoupon(req.user._id);
     }
     res.status(200).json({ id: session.id, totalAmount: totalAmount / 100 });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    res.status(500).json({ 
+      message: "Error creating checkout session", 
+      error: error.message 
+    });
+  }
 };
 
 // Handle successful checkout session
@@ -94,7 +100,7 @@ export const checkoutSuccess = async (req, res) => {
 
     if (session.payment_status === "paid") {
       if (session.metadata.couponCode) {
-        await Coupon.finfOneAndUpdate(
+        await Coupon.findOneAndUpdate(
           {
             code: session.metadata.couponCode,
             userId: session.metadata.userId,

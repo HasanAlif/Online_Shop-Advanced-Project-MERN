@@ -66,21 +66,31 @@ export const useCartStore = create((set, get) => ({
 		}
 	},
 	removeFromCart: async (productId) => {
-		await axios.delete(`/cart`, { data: { productId } });
-		set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
-		get().calculateTotals();
+		try {
+			await axios.delete(`/cart`, { data: { productId } });
+			set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
+			get().calculateTotals();
+		} catch (error) {
+			console.error("Error removing from cart:", error);
+			toast.error(error.response?.data?.message || "Failed to remove item");
+		}
 	},
 	updateQuantity: async (productId, quantity) => {
-		if (quantity === 0) {
-			get().removeFromCart(productId);
-			return;
-		}
+		try {
+			if (quantity === 0) {
+				get().removeFromCart(productId);
+				return;
+			}
 
-		await axios.put(`/cart/${productId}`, { quantity });
-		set((prevState) => ({
-			cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
-		}));
-		get().calculateTotals();
+			await axios.put(`/cart/${productId}`, { quantity });
+			set((prevState) => ({
+				cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
+			}));
+			get().calculateTotals();
+		} catch (error) {
+			console.error("Error updating quantity:", error);
+			toast.error(error.response?.data?.message || "Failed to update quantity");
+		}
 	},
 	calculateTotals: () => {
 		const { cart, coupon } = get();
