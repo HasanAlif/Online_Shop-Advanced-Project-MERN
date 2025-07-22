@@ -8,40 +8,45 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Please enter your name"],
-    },
+    },// Name of the user
     email: {
       type: String,
       required: [true, "Please enter your email"],
       unique: true,
       lowercase: true,
       trim: true,
-    },
+    },// Email of the user
+    // Email must be unique, lowercase, and trimmed
     password: {
       type: String,
       required: [true, "Please enter your password"],
       minlength: [6, "Password must be at least 6 characters"],
-    },
+    },// Password of the user, must be at least 6 characters long
+    // Password must be at least 6 characters long
     cartItems: [
       {
         quantity: {
           type: Number,
           default: 1,
-        },
+        },// Quantity of the product in the cart, default is 1
+        // Default quantity is 1 if not specified
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
-        },
-      },
-    ],
+        },// Product ID associated with the cart item
+        // Product ID is a reference to the Product model
+      },// Cart items are an array of objects containing product ID and quantity
+    ],// Cart items are an array of objects containing product ID and quantity
     role: {
       type: String,
       enum: ["customer", "admin"],
       default: "customer",
-    },
-  },
+    },// Role of the user, can be either 'customer' or 'admin', default is 'customer'
+    // Role can be either 'customer' or 'admin', default is 'customer'
+  },// User schema defines the structure of the user documents in the MongoDB collection
   {
     timestamps: true,
-  }
+  }// Automatically manage createdAt and updatedAt timestamps
 );
 
 // Pre-save middleware to hash the password before saving the user
